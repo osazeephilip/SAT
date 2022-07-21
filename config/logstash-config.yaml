@@ -1,29 +1,29 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
- name: logstash-config
+  name: logstash-config
 data:
- logstash-wrapper.sh: |-
-   set -x -e
-   rm -vf "/usr/share/logstash/config/logstash.yml"
-   echo "xpack.monitoring.enabled: false" > "/usr/share/logstash/config/logstash.yml"
-   exec /usr/local/bin/docker-entrypoint "$@"
- config: |-
-   input {
-     http {
-       port => 5000
-       codec => json
-       ssl => true
-       ssl_certificate_authorities => "/etc/ssl/elastic/elastic.crt"
-       ssl_certificate => "/etc/ssl/elastic/elastic.crt"
-       ssl_key => "/etc/ssl/elastic/elastic.key"
-       ssl_verify_mode => "peer"
-     }
-   }
-   output {
-     elasticsearch {
-       hosts => ["elasticsearch.elastic.svc.cluster.local:9200"]
-       index => "logstash-%{+YYYY.MM.dd}"
-     }
-     stdout { codec => rubydebug }
-   }
+  logstash-wrapper.sh: |-
+    set -x -e
+    rm -vf "/usr/share/logstash/config/logstash.yml"
+    echo "xpack.monitoring.enabled: false" > "/usr/share/logstash/config/logstash.yml"
+    exec /usr/local/bin/docker-entrypoint "$@"
+  config: |-
+    input {
+      http {
+        port => 5000
+        codec => json
+        ssl => true
+        ssl_certificate_authorities => "/etc/ssl/elastic/elastic.crt"
+        ssl_certificate => "/etc/ssl/elastic/elastic.crt"
+        ssl_key => "/etc/ssl/elastic/elastic.key"
+        ssl_verify_mode => "peer"
+      }
+    }
+    output {
+      elasticsearch {
+        hosts => ["elasticsearch.elastic.svc.cluster.local:9200"]
+        index => "logstash-%{+YYYY.MM.dd}"
+      }
+      stdout { codec => rubydebug }
+    }
