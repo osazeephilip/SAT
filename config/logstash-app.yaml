@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  labels:
+    app: logstash
+spec:
+  serviceName: logstash
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+      - name: logstash
+        image: gts-cacf-global-team-prod-docker-local.artifactory.swg-devops.com/logstash/logstash_syslog:7.16.3
+        command: [ "bash", "--", "/etc/logstash/logstash-wrapper.sh", "-f", "/etc/logstash/config" ]
+        resources:
+          limits:
+            cpu: 1000m
+          requests:
+            cpu: 100m
+        ports:
+        - containerPort: 5000
+          name: rest
+          protocol: TCP
+        env:
+         - name: LOGSTASH_HOME
+           value: /usr/share/logstash
+        volumeMounts:
+        - name: logstash-config
+          mountPath: /etc/logstash
+        - name: log
+          mountPath: /var/log
+        - name: elastic-secret
+          mountPath: /etc/ssl/elastic
+      imagePullSecrets:
+      - name: cacf-repo-prod-artifactory-secret
+      volumes:
+      - name: logstash-config
+        configMap:
+          name: logstash-config
+      - name: log
+        emptyDir: {}
+      - name: elastic-secret
+        secret:
+          secretName: elastic-secret
+      serviceAccount: elastic
+      serviceAccountName: elastic
+

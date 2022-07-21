@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elasticsearch-cluster-0
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: ag1sr1lpta1str1.sr1.ag1.sp.ibm.local
+    path: /nfs/ocp1/elasticsearch-cluster-0
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elasticsearch-cluster-1
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: ag1sr1lpta1str1.sr1.ag1.sp.ibm.local
+    path: /nfs/ocp1/elasticsearch-cluster-1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: elasticsearch-cluster-2
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: ag1sr1lpta1str1.sr1.ag1.sp.ibm.local
+    path: /nfs/ocp1/elasticsearch-cluster-2
+

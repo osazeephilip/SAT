@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Route
+metadata:
+  name: logstash
+spec:
+  host: logstash.yaocp.local
+  port:
+    targetPort: rest
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: passthrough
+  to:
+    kind: Service
+    name: logstash
+
