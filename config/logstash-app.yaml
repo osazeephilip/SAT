@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: logstash
-        image: gts-cacf-global-team-prod-docker-local.artifactory.swg-devops.com/logstash/logstash_syslog:7.16.3
+        image: na.artifactory.taas.kyndryl.net/gts-cacf-global-team-prod-docker-local/logstash/logstash_syslog:7.16.3
         command: [ "bash", "--", "/etc/logstash/logstash-wrapper.sh", "-f", "/etc/logstash/config" ]
         resources:
           limits:
