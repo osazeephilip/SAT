@@ -1,0 +1,210 @@
+# grafana/grafana:latest
+# influxdb:latest
+# telegraf:latest
+# chronograf:latest only in DEV
+# kapacitor:latest only in DEV
+# Prometeus:latest
+
+version: "3.7"
+services:
+#################################
+  telegraf:
+    container_name: mon_telegraf
+    image: telegraf
+    environment:
+      - DOCKER_INFLUXDB_INIT_ORG=BMW
+      - DOCKER_INFLUXDB_INIT_BUCKET=Server
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN="ZXWXNjzqhLkEp_WYEqDEfqWr6sZl0cV-EdRd4pscUJxxUS6m9RqGS3qhefbJripAgPAshGxh2m-W4BB9MPcllQ=="
+    volumes:
+      - telegraf_conf:/etc/telegraf/
+    #  - telegraf_mib:/usr/share/snmp/mibs/
+    depends_on:
+      - influxdb
+    links:
+      - influxdb
+    ports:
+    - "8125:8125/udp"
+    - "162:162/udp"
+    deploy: 
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+##################################
+  influxdb:
+    container_name: mon_influxdb
+    image: influxdb:latest
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=oiuen432b
+      - DOCKER_INFLUXDB_INIT_ORG=BMW
+      - DOCKER_INFLUXDB_INIT_BUCKET=Server
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN="ZXWXNjzqhLkEp_WYEqDEfqWr6sZl0cV-EdRd4pscUJxxUS6m9RqGS3qhefbJripAgPAshGxh2m-W4BB9MPcllQ=="
+      - PUID=1001
+      - PGID=1001
+      - UID=1001
+      - GID=1001
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_config:/etc/influxdb2
+      - influxdb_data:/var/lib/influxdb2
+    deploy: 
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+###################################
+  grafana:
+    container_name: mon_grafana
+    image: grafana/grafana
+    depends_on:
+      - influxdb
+    environment:
+      - "GF_SECURITY_ADMIN_USER=admin"
+      - "GF_SECURITY_ADMIN_PASSWORD=nfu894kw"
+      - "GF_SECURITY_ALLOW_EMBEDDING=true"
+      - "GF_AUTH_ANONYMOUS_ENABLED=true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - grafana_provisioning:/etc/grafana/provisioning/
+      - grafana_dashboards:/var/lib/grafana/dashboards/
+    deploy: 
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+###################################
+  chronograf:
+    container_name: mon_chronograf
+    image: chronograf
+    ports:
+      - "8888:8888"
+    volumes:
+      - chronograf_storage:/var/lib/chronograf
+    depends_on:
+      - influxdb
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_USERNAME="admin"
+      - INFLUXDB_PASSWORD="oiuen432b"
+
+#############################################
+  kapacitor:
+    container_name: mon_kapacitor
+    image: "kapacitor:latest"
+    ports:
+      - "9092:9092"
+    volumes:
+      - kapacitor_config:/etc/kapacitor
+      - kapacitor_log:/var/log/kapacitor
+      - kapacitor_home:/home/kapacitor
+    depends_on:
+      - influxdb
+#    environment:
+#      - KAPACITOR_INFLUXDB_0_URLS_0=http://influxdb:8086
+#      - INFLUXDB_USERNAME="admin"
+#      - INFLUXDB_PASSWORD="oiuen432b"
+
+#############################################
+  prometheus:
+    container_name: mon_prometheus
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus-storage:/var/lib/prometheus
+      - prometheus-config:/etc/prometheus
+    depends_on:
+      - influxdb
+    deploy: 
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+#############################################
+
+volumes:
+  telegraf_conf:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/telegraf_conf
+#  telegraf_mib:
+#    driver: local
+#    driver_opts:
+#      o: bind
+#      type: none
+#      device: /home/nfs/monitoring/telegraf_mib
+  influxdb_config:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/influxdb_config
+  influxdb_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/influxdb_data
+  grafana_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/grafana_data
+  grafana_provisioning:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/grafana_provisioning
+  grafana_dashboards:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/grafana_dashboards
+  chronograf_storage:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/chronograf_storage
+  kapacitor_config:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/kapacitor_config
+  kapacitor_log:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/kapacitor_log
+  kapacitor_home:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/kapacitor_home
+
+  prometheus-storage:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/prometheus_storage
+  prometheus-config:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/nfs/monitoring/prometheus_config
+
